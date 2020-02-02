@@ -52,24 +52,25 @@ def pearson_sim(mat):
 	for user in range(mat.shape[0]):
 		nonzeroarr = mat[user,:].nonzero()[0]
 		avg = np.sum(mat[user])/len(nonzeroarr)
-		sim_matrix[user,nonzeroarr] = mat[user,nonzeroarr] - avg
+		sim_matrix[user,nonzeroarr] = mat[user,nonzeroarr] - avg + 1e-9
 		
 	sim_matrix = (sim_matrix).dot((sim_matrix).T) 
 	# check pearson after this
 	norms = np.array([np.sqrt(np.diagonal(sim_matrix))])
-	print(norms)
+	# norms is a square root array of magnitude of each user (diagonal contains magntitude of rows)
 	return sim_matrix / norms / norms.T
 
 def cosine_sim(ratings, epsilon=1e-9):
     # epsilon -> small number for handling dived-by-zero errors
     sim = ratings.dot(ratings.T) + epsilon
     norms = np.array([np.sqrt(np.diagonal(sim))])
+
     return (sim / norms / norms.T)
 
-tmp = np.array([[1,3,0,0,5],[2,3,0,0,4]])
-print(tmp)
-sim_matrix = pearson_sim(tmp)
-print(sim_matrix)
+sim_cos = cosine_sim(train)
+sim_matrix = pearson_sim(train)
+# print(sim_matrix)
 print('Similarity Matrix Calulated')
-sim_cos = cosine_sim(tmp)
-print(sim_cos)
+
+# print(sim_cos)
+
