@@ -86,6 +86,19 @@ def predict_nobias(ratings,similarity):
 	pred += user_bias[:, np.newaxis]
 	return pred
 
+def predict_topk(ratings,similarity,k=40,bias=0):
+    
+    pred = np.zeros(ratings.shape)
+    new_sim = np.zeros(similarity.shape)
+    
+    for i in range(similarity.shape[0]):
+        x = tuple(np.sort(np.argsort(similarity[:,i])[:-k-1:-1]))
+        new_sim[i][[x]] = similarity[i][[x]]
+        
+    if bias is 1:
+        return predict(ratings,new_sim)
+    return predict_nobias(ratings,new_sim)
+
 def get_mse(pred, actual):
     # Ignore nonzero terms.
     pred = pred[actual.nonzero()].flatten()
@@ -103,3 +116,12 @@ print ('User-based CF MSE:(Cosine) ' + str(get_mse(user_prediction_cos_nobias, t
 user_prediction_pearson_nobias = predict_nobias(train,sim_matrix)
 print ('User-based CF MSE:(Pearson)' + str(get_mse(user_prediction_pearson_nobias, test)))
 
+user_prediction_cos_bias_topk = predict_topk(train, sim_cos,bias=1)
+print ('User-based CF MSE:(Cosine,TOP-K) ' + str(get_mse(user_prediction_cos_bias_topk, test)))
+user_prediction_pearson_bias_topk = predict_topk(train,sim_matrix,bias=1)
+print ('User-based CF MSE:(Pearson,TOP-K) ' + str(get_mse(user_prediction_pearson_bias_topk, test)))
+
+user_prediction_cos_nobias_topk = predict_topk(train, sim_cos)
+print ('User-based CF MSE:(Cosine,TOP-K) without bias ' + str(get_mse(user_prediction_cos_nobias_topk, test)))
+user_prediction_pearson_nobias_topk = predict_topk(train,sim_matrix)
+print ('User-based CF MSE:(Pearson,TOP-K) without bias ' + str(get_mse(user_prediction_pearson_nobias_topk, test)))
