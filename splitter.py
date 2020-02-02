@@ -15,6 +15,5 @@ for name,group in grouped:
         train_df = train_df.append(X_train,sort=False)
         X_test = pd.concat([X_test,Y_test],axis=1)
         test_df = test_df.append(X_test,sort=False)
-print(test_df.shape)
-test_df.to_csv("test.csv")
-train_df.to_csv("train.csv")
+test_df.to_csv("test.csv",index=0)
+train_df.to_csv("train.csv",index=0)
