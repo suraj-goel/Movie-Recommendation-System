@@ -18,7 +18,7 @@ print('Total Movie : ' + str(n_items))
 
 
 
-# converting data frame to utility matrix 
+# converting data frame to utility matrix .
 df_utility = df.pivot(index = 'userId',columns='movieId',values = 'rating').fillna(0)
 print(df_utility.head())
 ratings = np.array(df_utility)
