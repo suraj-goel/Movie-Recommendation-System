@@ -87,7 +87,7 @@ def predict_nobias(ratings,similarity):
 	return pred
 
 def predict_topk(ratings,similarity,k=40,bias=0):
-    
+    # make new similarity matrix having only top k similar users
     pred = np.zeros(ratings.shape)
     new_sim = np.zeros(similarity.shape)
     
