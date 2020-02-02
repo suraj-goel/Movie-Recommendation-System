@@ -1,7 +1,7 @@
 import numpy as np 
 import pandas as pd 
 import sys
-
+from sklearn.metrics import mean_squared_error
 # df is dataframe
 df = pd.read_csv('ml-latest-small/ratings.csv', ',')
 print(df.head())
@@ -53,24 +53,53 @@ def pearson_sim(mat):
 		nonzeroarr = mat[user,:].nonzero()[0]
 		avg = np.sum(mat[user])/len(nonzeroarr)
 		sim_matrix[user,nonzeroarr] = mat[user,nonzeroarr] - avg + 1e-9
-		
-	sim_matrix = (sim_matrix).dot((sim_matrix).T) 
-	# check pearson after this
-	norms = np.array([np.sqrt(np.diagonal(sim_matrix))])
+	
+	sim_matrix = (sim_matrix).dot((sim_matrix).T)
+	norms = np.array([np.sqrt(np.diagonal(np.abs(sim_matrix)))])
 	# norms is a square root array of magnitude of each user (diagonal contains magntitude of rows)
-	return sim_matrix / norms / norms.T
+	return (sim_matrix / norms / norms.T)
 
 def cosine_sim(ratings, epsilon=1e-9):
     # epsilon -> small number for handling dived-by-zero errors
     sim = ratings.dot(ratings.T) + epsilon
     norms = np.array([np.sqrt(np.diagonal(sim))])
-
     return (sim / norms / norms.T)
 
 sim_cos = cosine_sim(train)
 sim_matrix = pearson_sim(train)
-# print(sim_matrix)
-print('Similarity Matrix Calulated')
 
+print('Similarity Matrix Calulated')
 # print(sim_cos)
+# print(sim_matrix)
+
+def predict(ratings,similarity):
+	# Summation sim(u,u')*r(u',i) / Summation of |sim(u,u')|
+	den = np.array(np.abs(similarity).sum(axis=1)).T
+	den = den.reshape((den.shape[0],1))
+	return similarity.dot(ratings) /den
+
+def predict_nobias(ratings,similarity):
+	# r(ui) = ravg(u) + sum((sim(u,u')*(ru'i - ravgu'))/sum(sim(u,u'))
+	user_bias = ratings.mean(axis=1)
+	ratings = (ratings - user_bias[:, np.newaxis]).copy()
+	pred = similarity.dot(ratings) / np.array([np.abs(similarity).sum(axis=1)]).T
+	pred += user_bias[:, np.newaxis]
+	return pred
+
+def get_mse(pred, actual):
+    # Ignore nonzero terms.
+    pred = pred[actual.nonzero()].flatten()
+    actual = actual[actual.nonzero()].flatten()
+    return mean_squared_error(pred, actual)
+
+
+user_prediction_cos_bias = predict(train, sim_cos)
+print ('User-based CF MSE:(Cosine) ' + str(get_mse(user_prediction_cos_bias, test)))
+user_prediction_pearson_bias = predict(train,sim_matrix)
+print ('User-based CF MSE:(Pearson)' + str(get_mse(user_prediction_pearson_bias, test)))
+
+user_prediction_cos_nobias = predict_nobias(train, sim_cos)
+print ('User-based CF MSE:(Cosine) ' + str(get_mse(user_prediction_cos_nobias, test)))
+user_prediction_pearson_nobias = predict_nobias(train,sim_matrix)
+print ('User-based CF MSE:(Pearson)' + str(get_mse(user_prediction_pearson_nobias, test)))
 
