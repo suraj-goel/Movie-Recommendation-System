@@ -129,7 +129,8 @@ print ('User-based CF MSE:(Pearson,TOP-K) without bias ' + str(get_rmse(user_pre
 
 #we consider cosine top-k matrix since it's our best result so far
 # we divide our data into ranges (0-1],(1-2].....etc to create confusion matrix
-prediction_range_values = np.ceil(abs(user_prediction_cos_nobias_topk)).flatten()
-rating_range_values = np.ceil(test).flatten()
+x = test
+rating_range_values = np.ceil(x)[x.nonzero()]
+prediction_range_values = np.ceil(abs(user_prediction_cos_nobias_topk))[x.nonzero()]
 cf_matrix = pd.crosstab(pd.Series(rating_range_values,name='Actual'),pd.Series(prediction_range_values,name='Predicted'))
-print(cf_matrix[1:])
+print(cf_matrix)
