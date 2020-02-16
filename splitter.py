@@ -126,3 +126,10 @@ user_prediction_cos_nobias_topk = predict_topk(train, sim_cos)
 print ('User-based CF MSE:(Cosine,TOP-K) without bias ' + str(get_rmse(user_prediction_cos_nobias_topk, test)))
 user_prediction_pearson_nobias_topk = predict_topk(train,sim_matrix)
 print ('User-based CF MSE:(Pearson,TOP-K) without bias ' + str(get_rmse(user_prediction_pearson_nobias_topk, test)))
+
+#we consider cosine top-k matrix since it's our best result so far
+# we divide our data into ranges (0-1],(1-2].....etc to create confusion matrix
+prediction_range_values = np.ceil(abs(user_prediction_cos_nobias_topk)).flatten()
+rating_range_values = np.ceil(test).flatten()
+cf_matrix = pd.crosstab(pd.Series(rating_range_values,name='Actual'),pd.Series(prediction_range_values,name='Predicted'))
+print(cf_matrix[1:])
