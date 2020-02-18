@@ -3,10 +3,11 @@ import pandas as pd
 import sys
 from math import sqrt
 from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
+
 # df is dataframe
 df = pd.read_csv('ratings.csv', ',')
 print(df.head())
-
 
 n_users = df.userId.unique().shape[0]
 n_items = df.movieId.unique().shape[0]
@@ -101,7 +102,7 @@ def predict_topk(ratings,similarity,k=40,bias=0):
     return predict_nobias(ratings,new_sim)
 
 def get_rmse(pred, actual):
-    # Ignore nonzero terms.
+    # Ignore zero terms.
     pred = pred[actual.nonzero()].flatten()
     actual = actual[actual.nonzero()].flatten()
     return sqrt(mean_squared_error(pred, actual))
@@ -133,4 +134,19 @@ x = test
 rating_range_values = np.ceil(x)[x.nonzero()]
 prediction_range_values = np.ceil(abs(user_prediction_cos_nobias_topk))[x.nonzero()]
 cf_matrix = pd.crosstab(pd.Series(rating_range_values,name='Actual'),pd.Series(prediction_range_values,name='Predicted'))
+print("\n\nConfusion Matrix: \n")
 print(cf_matrix)
+
+#different values of k against their rmse
+k_values = [10,20,30,40,50]
+rmse_list_cos_top_k = []
+rmse_list_pson_top_k = []
+
+for k in k_values:
+    rmse_list_cos_top_k.append(get_rmse(predict_topk(train,sim_cos,k=k), test))
+    rmse_list_pson_top_k.append(get_rmse(predict_topk(train,sim_matrix,k=k), test))
+    
+print("\n\n\n")    
+plt.title("x-axis: k values vs y-axis : rmse")
+plt.plot(k_values,rmse_list_cos_top_k)
+plt.plot(k_values,rmse_list_pson_top_k)
