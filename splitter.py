@@ -45,9 +45,6 @@ def train_test_split(ratings,fractionTest):
 	assert(np.all((train*test)==0))
 	return train,test
 
-train,test = train_test_split(ratings,0.25) 
-print('Data splitted into Train,Test')
-
 def pearson_sim(mat):
 	sim_matrix = np.zeros((mat.shape[0],mat.shape[1]))
 	mean = np.mean(mat,axis=1)
@@ -67,12 +64,6 @@ def cosine_sim(ratings, epsilon=1e-9):
     norms = np.array([np.sqrt(np.diagonal(sim))])
     return (sim / norms / norms.T)
 
-sim_cos = cosine_sim(train)
-sim_matrix = pearson_sim(train)
-
-print('Similarity Matrix Calulated')
-# print(sim_cos)
-# print(sim_matrix)
 
 def predict(ratings,similarity):
 	# Summation sim(u,u')*r(u',i) / Summation of |sim(u,u')|
@@ -107,46 +98,64 @@ def get_rmse(pred, actual):
     actual = actual[actual.nonzero()].flatten()
     return sqrt(mean_squared_error(pred, actual))
 
+split_ratio = [0.10,0.15,0.20,0.25,0.30,0.35,0.40]
 
-user_prediction_cos_bias = predict(train, sim_cos)
-print ('User-based CF MSE:(Cosine) ' + str(get_rmse(user_prediction_cos_bias, test)))
-user_prediction_pearson_bias = predict(train,sim_matrix)
-print ('User-based CF MSE:(Pearson)' + str(get_rmse(user_prediction_pearson_bias, test)))
+for split in split_ratio:
+    print("****************************************************************\n\n\n\n")
+    print("split = ")
+    print(split)
+    print("\n\n\n")
+    train,test = train_test_split(ratings,split) 
+    print('Data splitted into Train,Test')
 
-user_prediction_cos_nobias = predict_nobias(train, sim_cos)
-print ('User-based CF MSE:(Cosine) ' + str(get_rmse(user_prediction_cos_nobias, test)))
-user_prediction_pearson_nobias = predict_nobias(train,sim_matrix)
-print ('User-based CF MSE:(Pearson)' + str(get_rmse(user_prediction_pearson_nobias, test)))
+    sim_cos = cosine_sim(train)
+    sim_matrix = pearson_sim(train)
 
-user_prediction_cos_bias_topk = predict_topk(train, sim_cos,bias=1)
-print ('User-based CF MSE:(Cosine,TOP-K) ' + str(get_rmse(user_prediction_cos_bias_topk, test)))
-user_prediction_pearson_bias_topk = predict_topk(train,sim_matrix,bias=1)
-print ('User-based CF MSE:(Pearson,TOP-K) ' + str(get_rmse(user_prediction_pearson_bias_topk, test)))
+    print('Similarity Matrix Calulated')
+    # print(sim_cos)
+    # print(sim_matrix)
 
-user_prediction_cos_nobias_topk = predict_topk(train, sim_cos)
-print ('User-based CF MSE:(Cosine,TOP-K) without bias ' + str(get_rmse(user_prediction_cos_nobias_topk, test)))
-user_prediction_pearson_nobias_topk = predict_topk(train,sim_matrix)
-print ('User-based CF MSE:(Pearson,TOP-K) without bias ' + str(get_rmse(user_prediction_pearson_nobias_topk, test)))
 
-#we consider cosine top-k matrix since it's our best result so far
-# we divide our data into ranges (0-1],(1-2].....etc to create confusion matrix
-x = test
-rating_range_values = np.ceil(x)[x.nonzero()]
-prediction_range_values = np.ceil(abs(user_prediction_cos_nobias_topk))[x.nonzero()]
-cf_matrix = pd.crosstab(pd.Series(rating_range_values,name='Actual'),pd.Series(prediction_range_values,name='Predicted'))
-print("\n\nConfusion Matrix: \n")
-print(cf_matrix)
+    user_prediction_cos_bias = predict(train, sim_cos)
+    print ('User-based CF MSE:(Cosine) ' + str(get_rmse(user_prediction_cos_bias, test)))
+    user_prediction_pearson_bias = predict(train,sim_matrix)
+    print ('User-based CF MSE:(Pearson)' + str(get_rmse(user_prediction_pearson_bias, test)))
 
-#different values of k against their rmse
-k_values = [10,20,30,40,50]
-rmse_list_cos_top_k = []
-rmse_list_pson_top_k = []
+    user_prediction_cos_nobias = predict_nobias(train, sim_cos)
+    print ('User-based CF MSE:(Cosine) ' + str(get_rmse(user_prediction_cos_nobias, test)))
+    user_prediction_pearson_nobias = predict_nobias(train,sim_matrix)
+    print ('User-based CF MSE:(Pearson)' + str(get_rmse(user_prediction_pearson_nobias, test)))
 
-for k in k_values:
-    rmse_list_cos_top_k.append(get_rmse(predict_topk(train,sim_cos,k=k), test))
-    rmse_list_pson_top_k.append(get_rmse(predict_topk(train,sim_matrix,k=k), test))
-    
-print("\n\n\n")    
-plt.title("x-axis: k values vs y-axis : rmse")
-plt.plot(k_values,rmse_list_cos_top_k)
-plt.plot(k_values,rmse_list_pson_top_k)
+    user_prediction_cos_bias_topk = predict_topk(train, sim_cos,bias=1)
+    print ('User-based CF MSE:(Cosine,TOP-K) ' + str(get_rmse(user_prediction_cos_bias_topk, test)))
+    user_prediction_pearson_bias_topk = predict_topk(train,sim_matrix,bias=1)
+    print ('User-based CF MSE:(Pearson,TOP-K) ' + str(get_rmse(user_prediction_pearson_bias_topk, test)))
+
+    user_prediction_cos_nobias_topk = predict_topk(train, sim_cos)
+    print ('User-based CF MSE:(Cosine,TOP-K) without bias ' + str(get_rmse(user_prediction_cos_nobias_topk, test)))
+    user_prediction_pearson_nobias_topk = predict_topk(train,sim_matrix)
+    print ('User-based CF MSE:(Pearson,TOP-K) without bias ' + str(get_rmse(user_prediction_pearson_nobias_topk, test)))
+
+    #we consider cosine top-k matrix since it's our best result so far
+    # we divide our data into ranges (0-1],(1-2].....etc to create confusion matrix
+    x = test
+    rating_range_values = np.ceil(x)[x.nonzero()]
+    prediction_range_values = np.ceil(abs(user_prediction_cos_nobias_topk))[x.nonzero()]
+    cf_matrix = pd.crosstab(pd.Series(rating_range_values,name='Actual'),pd.Series(prediction_range_values,name='Predicted'))
+    print("\n\nConfusion Matrix: \n")
+    print(cf_matrix)
+
+    #different values of k against their rmse
+    k_values = [10,20,30,40,50]
+    rmse_list_cos_top_k = []
+    rmse_list_pson_top_k = []
+
+    for k in k_values:
+        rmse_list_cos_top_k.append(get_rmse(predict_topk(train,sim_cos,k=k), test))
+        rmse_list_pson_top_k.append(get_rmse(predict_topk(train,sim_matrix,k=k), test))
+
+    print("\n\n\n")    
+    plt.title("x-axis: k values vs y-axis : rmse")
+    plt.plot(k_values,rmse_list_cos_top_k,label=str(split)+' cosine')
+    plt.plot(k_values,rmse_list_pson_top_k,label=str(split)+' pearson')
+plt.legend()
