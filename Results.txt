@@ -1,0 +1,14 @@
+Root Mean Squre Values For The Following Recommender Systems:
+	Recommender System                     RMSE  
+1.User-based CF (Cosine)                       3.0
+2.User-Based CF (Pearson)                      2.8
+3.User-Based CF (Cosine Top-k)                 2.7
+4.User-Based CF (Cosine Top-k Without Bias)    2.5
+
+The above recommendation systems used Collaborative Filtering and data set containing
+ratings of only 610 users.The data sparsity lead to increased RMSE values.
+
+								 RMSE						
+5.Cross Domain Recommendation System Using Matrix Factorisation  1.81 
+
+We used the 1-million data set from movie lens for the cross domain recommendation system.
