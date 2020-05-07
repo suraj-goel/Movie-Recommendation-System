@@ -12,7 +12,7 @@ zip_ref.extractall()
 rating_col = ['userId','movieId','rating','timestamp']
 ratings_df = pd.read_csv("/content/ml-1m/ratings.dat",'::',names=rating_col,engine='python')
 print(ratings_df.head())
-# ratings_df = ratings_df.sample(frac=0.01)
+#  ratings_df = ratings_df.sample(frac=0.01)
 
 n_users = ratings_df.userId.unique().shape[0]
 n_items = ratings_df.movieId.unique().shape[0]
@@ -46,9 +46,9 @@ def train_test_split(ratings,fractionTest):
 	train = ratings.copy()
 	for user in range(ratings.shape[0]):
 		nonzeroarr = ratings[user,:].nonzero()[0]
-		# print(nonzeroarr[0])
+		#  print(nonzeroarr[0])
 		nonzerolen = len(nonzeroarr)
-		# print(nonzerolen)
+		#  print(nonzerolen)
 		test_rating_indices = np.random.choice(nonzeroarr,size=int(nonzerolen*fractionTest),replace=False)
 		train[user,test_rating_indices] = 0
 		test[user,test_rating_indices] = ratings[user,test_rating_indices]
@@ -78,8 +78,8 @@ def matrix_factorization(R, P, Q, K, steps=1, alpha=0.0002, beta=0.02):
                 tempq[j] = 2*Q[j]*eij[i][j]*alpha
 
                 for k in range(K):
-                        # w:=w-Delta(w)
-                        # Delta(p[i][k]) = -2*eij*Q[k][j]
+                        #  w:=w-Delta(w)
+                        #  Delta(p[i][k]) = -2*eij*Q[k][j]
                         P[i][k] = P[i][k] + alpha * (2 * eij * Q[k][j] - beta * P[i][k])
                         Q[k][j] = Q[k][j] + alpha * (2 * eij * P[i][k] - beta * Q[k][j])
         eR = np.dot(P,Q)
@@ -99,7 +99,7 @@ print(nets_train.shape)
 print(nets_test.shape)
 nets_mean = np.mean(nets_train, axis = 1)
 nets_demeaned = nets_train - nets_mean.reshape(-1, 1)
-# print(R_demeaned)
+#  print(R_demeaned)
 from scipy.sparse.linalg import svds
 U, sigma, Vt = svds(nets_demeaned, k = 25)
 sigma = np.diag(sigma)
@@ -110,7 +110,7 @@ print(nets.shape)
 
 from sklearn.metrics import mean_squared_error
 def get_mse(pred, actual):
-    # Ignore nonzero terms.
+    #  Ignore nonzero terms.
     pred = pred[actual.nonzero()].flatten()
     actual = actual[actual.nonzero()].flatten()
     return mean_squared_error(pred, actual)
